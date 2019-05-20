@@ -1,88 +1,87 @@
-import random
-from XYEnvironment import *
+from MineSweeperEnvironment import *
+from MineSweeperTile import *
+import sys
 
-class MineSweeperSquare:
-    def __init__(self):
-        self.hasAMine = False
-        self.refNumber = 0
-        self.isVisible = False
+class Node(object):
+    def __init__(self, data):
+        self.data = data
+        self.children = []
 
-class MineSweeperEnv(XYEnvironment):
+    def add_child(self, obj):
+        self.children.append(obj)
 
-    def __init__(self, numOfRows, numOfColumns, numOfMines):
-        super(MineSweeperEnv,self).__init__(numOfRows,numOfColumns)
-        self.numOfMines = numOfMines
-        self.generateEnv()
+class AgentKB(XYEnvironment):
 
-    # Generates MineSweeperSquare acording to the size specified in the initializer.
-    def generateEnv(self):
-        for row in range(self.numOfRows):
-            rows = []
-            for col in range(self.numOfColumns):
-                rows.append(MineSweeperSquare())
-            self.map.append(rows)
+    def __init__(self, numOfRows, numOfColumns):
+        super(AgentKB, self).__init__(numOfRows, numOfColumns)
+        self.graph = [[None for x in range(env.numOfColumns)] for y in range(env.numOfRows)]
 
-    def startPlaying(self, startRow, startCol):
-        self.__addMinesRandomlyStartingAt(startRow, startCol)
+    def tell(self, newVisibleTiles):
+        self.__storeTilesInGraph(newVisibleTiles)
 
-    def __increaseByOneTheNeighborsOf(self, colPos, rowPos):  # Once a bomb is added in the environment, the niegbors update their ref number.
-        neighbors = self.getObjectsOfNeighborsAt(colPos, rowPos)
+    def __generateTreeStartingWith(self, mineSweeperTile):
+        y = mineSweeperTile.pos[0]
+        x = mineSweeperTile.pos[1]
+        neighbors = self.getObjectsOfNeighborsAt(y,x)
+        treeHead = Node(mineSweeperTile)
         for neighbor in neighbors:
-            if neighbor is not None:
-                neighbor.refNumber += 1
-        # self.printEnvironment()
-        # print()
+            treeHead.add_child(neighbor)
+        # for row in self.numOfRows:
+            # for col in self.numOfColumns:
 
-    def __removeStartingPositionsFromAllPositions(self, allPositions, startingPositions):
-        for obj in startingPositions:
-            if obj is not None:
-                allPositions.remove(obj)
-        return allPositions
 
-    def __generatePositionsToPutMines(self, startRow, startCol):
-        numberOfSquares = self.numOfRows * self.numOfColumns
-        allPositions = list(range(numberOfSquares))
-        startingPositions = self.getMapAddressOfNeighbors(startRow, startCol)
-        allPositions = self.__removeStartingPositionsFromAllPositions(allPositions, startingPositions)
-        positions = random.sample(allPositions, self.numOfMines)
-        return positions
+    def ask(self):
+        print("Ask function")
 
-    def __addMinesRandomlyStartingAt(self, startRow, startCol):
-        if startRow > self.numOfRows or startCol > self.numOfColumns:
-            print("Error!! - The Agent cannot start outside the environment")
-            return
+    def __storeTilesInGraph(self, listOfNewTiles):
+        for tile in listOfNewTiles:
+            pos = tile.pos
+            self.graph[pos[0]][pos[1]] = tile
 
-        positionsToPutMines = self.__generatePositionsToPutMines(startRow, startCol)
+class MineSweeperAgent:
 
-        for addressInMap in positionsToPutMines:
-            if self.numOfRows <= self.numOfColumns:
-                rowPos = addressInMap // self.numOfColumns
-                colPos = addressInMap % self.numOfColumns
-            else:
-                rowPos = addressInMap // self.numOfColumns
-                colPos = addressInMap % self.numOfColumns
+    def __init__(self):
+        self.movesNumber = 0
+        self.goal = 0
 
-            mineObj = self.map[rowPos][colPos]
-            mineObj.hasAMine = True
+    def setEnvironmentToPlayWith(self, mineSweeperEnv):
+        self.environment = mineSweeperEnv
+        self.goal = mineSweeperEnv.getNumOfMines()  # The number of mines to look for
+        size = mineSweeperEnv.getSizeOfEnvironment()  # returns Tuple (numOfRows, numOfColumns)
+        self.kb = AgentKB(size[0], size[1])
 
-            self.__increaseByOneTheNeighborsOf(colPos, rowPos)
+    def playInEnv(self, posY, posX):
+        print("Agent's eyes after move: row = " + str(posY) + ", col = " + str(posX))
+        if self.movesNumber is 0:
+            newVisibleTiles = self.environment.firstMove(posY, posY)
+            self.movesNumber += 1
+        else:
+            newVisibleTiles = self.environment.nextMove(posY,posX)
 
-    def printEnvironment(self):
-        for row in range(self.numOfRows):
-            for col in range(self.numOfColumns):
-                print("|---", end = "")
-            print("|")
-            for col in range(self.numOfColumns):
-                obj = self.map[row][col]
-                refNumber = str(obj.refNumber) if obj.refNumber > 0 else " "
-                value = "M" if obj.hasAMine == True else refNumber
-                print("| " + value + " ", end = "")
-            print("|")
-            if row == self.numOfRows - 1:
-                for col in range(self.numOfColumns):
-                    print("|---", end="")
-                print("|")
+
+        self.kb.tell(newVisibleTiles)
+        if len(newVisibleTiles) is not 0 and newVisibleTiles[0].hasAMine is True:
+            print("\n#############################\nI'M REALLY SORRY: YOU LOST!!!\n#############################")
+        if len(self.kb.map) is self.__getEnvironmentSize() - self.goal:
+            print("\n###########################\nCONGRATULATIONS: YOU WON!!!\n###########################")
+        self.printPerception(self.kb.graph)
+
+
+    def printPerception(self, newVisibleTiles):
+        env.printEnvironment(self.kb.graph)
+
+    def __getEnvironmentSize(self):
+        return self.environment.numOfColumns * self.environment.numOfRows
+
 
 env = MineSweeperEnv(9,9,10)
-env.startPlaying(3,6)
-env.printEnvironment()
+agent = MineSweeperAgent()
+env.printEnvironment(env.map)
+agent.setEnvironmentToPlayWith(env)
+
+if __name__ == '__main__':
+    i = 0
+    while i < agent.goal:
+        y, x = input("\nEnter two numbers for y and x axis respectively with a space: ").split()
+        print("You have chosen y: " + y + " and x: " + x)
+        agent.playInEnv(int(y),int(x))

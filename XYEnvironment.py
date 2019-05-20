@@ -5,7 +5,11 @@ class XYEnvironment(object):
         self.numOfColumns = numOfColumns
         self.map = [] #hold any type of object
 
-    def getObjectsOfNeighborsAt(self, xPos, yPos):
+    def getObjectAt(self, yPos, xPos):
+        object = self.map[yPos][xPos]
+        return object
+
+    def getObjectsOfNeighborsAt(self, yPos, xPos):
         x = xPos
         y = yPos
         upLeft = self.map[y - 1][x - 1] if (y - 1) >= 0 and (x - 1) >= 0 else None
