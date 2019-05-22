@@ -3,7 +3,10 @@ class MineSweeperTile:
         self.hasAMine = False
         self.refNumber = 0
         self.isVisible = False
-        self.pos = (-1,-1)
+        self.y = -1
+        self.x = -1
+        self.hasFlag = False
 
     def setPos(self,row,col):
-        self.pos = (row,col)
+        self.y = row
+        self.x = col

@@ -26,8 +26,8 @@ class MineSweeperEnv(XYEnvironment):
         return self.nextMove(startRow, startCol)
 
     def nextMove(self, startRow, startCol):
-        row = startRow - 1
-        col = startCol - 1
+        row = startRow
+        col = startCol
 
         newVisibleTiles = []
         self.__revealPlay(row, col, newVisibleTiles)
@@ -40,7 +40,7 @@ class MineSweeperEnv(XYEnvironment):
                 if row is 0:
                     if col is 0:
                         print("  ", end="")
-                    print("  " + str(col + 1), end=" ")
+                    print("  " + str(col), end=" ")
                 if col is self.numOfColumns -1 :
                     if row is 0:
                         print("")
@@ -54,13 +54,15 @@ class MineSweeperEnv(XYEnvironment):
             #RowValues
             for col in range(self.numOfColumns):
                 if col is 0:
-                    print(str(row + 1), end=" ")
+                    print(str(row), end=" ")
                 mineSweeperTile = map[row][col]
                 if mineSweeperTile is not None and mineSweeperTile.isVisible is True :
                     refNumber = str(mineSweeperTile.refNumber) if mineSweeperTile.refNumber > 0 else " "
                     value = "☼" if mineSweeperTile.hasAMine is True else refNumber
                 else:
                     value = "■"
+                if mineSweeperTile.hasFlag is True:
+                    value = "▿"
                 print("| " + value + " ", end="")
                 if col is self.numOfColumns - 1:
                     print("|")
@@ -78,11 +80,22 @@ class MineSweeperEnv(XYEnvironment):
     def getNumOfMines(self):
         return self.numOfMines
 
+    #TODO - FIND A CHEAPEST WAY TO DO THIS.
+    def getNumOfHiddenTiles(self):
+        result = 0
+        for row in range(self.numOfRows):
+            for col in range(self.numOfColumns):
+                if self.map[row][col].isVisible is False:
+                    result += 1
+        return result
+
     ''' PRIVATE FUNCTIONS '''
 
     def __revealPlay(self, row, col, result): #result is a in-out parameter
         neighbors = self.getObjectsOfNeighborsAt(row, col)
         current = self.getObjectAt(row, col)
+        if current.isVisible is True:
+            return
         if current.hasAMine is True:
             result +=  self.__revealAllMines()
             return
@@ -93,8 +106,7 @@ class MineSweeperEnv(XYEnvironment):
                 return
         for neighbor in neighbors:
             if neighbor is not None and neighbor not in result and neighbor.isVisible is False:
-                pos = neighbor.pos
-                self.__revealPlay(pos[0], pos[1], result)
+                self.__revealPlay(neighbor.y, neighbor.x, result)
 
     def __revealAllMines(self):
         allTilesWithMines = []
@@ -135,6 +147,7 @@ class MineSweeperEnv(XYEnvironment):
             return
 
         positionsToPutMines = self.__generatePositionsToPutMines(startRow, startCol)
+        # positionsToPutMines = [4, 7, 11, 17, 20, 21, 35, 55, 77]
 
         for addressInMap in positionsToPutMines:
             if self.numOfRows <= self.numOfColumns:

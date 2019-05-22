@@ -23,10 +23,15 @@ class XYEnvironment(object):
         bottom = self.map[y + 1][x] if (y + 1) < self.numOfRows and (x) >= 0 else None
         bottomRight = self.map[y + 1][x + 1] if (y + 1) < self.numOfRows and (x + 1) < self.numOfColumns else None
 
-        return [upLeft, up, upRight, left, right, bottomLeft, bottom, bottomRight]
+        list = [upLeft, up, upRight, left, right, bottomLeft, bottom, bottomRight]
+        result = []
+        for object in list:
+            if object is not None:
+                result.append(object)
+        return result
 
     def getMapAddressOfNeighbors(self, startRow, startCol):
-        addressInMap = (startRow - 1) * self.numOfRows + startCol - 1
+        addressInMap = (startRow) * self.numOfRows + startCol
 
         if addressInMap >= (self.numOfColumns * self.numOfRows):
             print("Error!! - map address out of boundaries")
@@ -61,4 +66,9 @@ class XYEnvironment(object):
         bottom = None if rowPos == self.numOfRows - 1 else bottomValue
         bottomRight = None if rowPos == self.numOfRows - 1 or colPos == self.numOfColumns - 1 else bottomRightValue
 
-        return [upLeft, up, upRight, left, addressInMap, right, bottomLeft, bottom, bottomRight]
+        list = [upLeft, up, upRight, left, addressInMap, right, bottomLeft, bottom, bottomRight]
+        result = []
+        for object in list:
+            if object is not None:
+                result.append(object)
+        return result
