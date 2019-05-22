@@ -39,22 +39,28 @@ class MineSweeperEnv(XYEnvironment):
             for col in range(self.numOfColumns):
                 if row is 0:
                     if col is 0:
-                        print("  ", end="")
-                    print("  " + str(col), end=" ")
+                        print("   ", end="")
+                    if col > 9:
+                        print(" " + str(col), end=" ")
+                    else:
+                        print("  " + str(col), end=" ")
                 if col is self.numOfColumns -1 :
                     if row is 0:
                         print("")
             #Row Lines
             for col in range(self.numOfColumns):
                 if col is 0:
-                    print("  ", end="")
+                    print("   ", end="")
                 print("|---", end="")
                 if col is self.numOfColumns - 1:
                     print("|")
             #RowValues
             for col in range(self.numOfColumns):
                 if col is 0:
-                    print(str(row), end=" ")
+                    if row > 9:
+                        print(str(row), end=" ")
+                    else:
+                        print(str(row), end="  ")
                 mineSweeperTile = map[row][col]
                 if mineSweeperTile is not None and mineSweeperTile.isVisible is True :
                     refNumber = str(mineSweeperTile.refNumber) if mineSweeperTile.refNumber > 0 else " "
@@ -70,7 +76,7 @@ class MineSweeperEnv(XYEnvironment):
             if row == self.numOfRows - 1:
                 for col in range(self.numOfColumns):
                     if col is 0:
-                        print("  ", end="")
+                        print("  ", end=" ")
                     print("|---", end="")
                 print("|")
 
